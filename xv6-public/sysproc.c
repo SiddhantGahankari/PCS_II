@@ -43,6 +43,39 @@ sys_getpid(void)
 }
 
 int
+sys_getmemsize(void)
+{
+  return myproc()->sz;
+}
+
+int
+sys_getvpages(void)
+{
+  return (myproc()->sz + PGSIZE - 1) / PGSIZE;
+}
+
+int
+sys_getptentries(void)
+{
+  struct proc *p = myproc();
+  pde_t *pgdir = p->pgdir;
+  pde_t *pde;
+  pte_t *pgtab;
+  uint a;
+  int count = 0;
+
+  for(a = 0; a < p->sz; a += PGSIZE){
+    pde = &pgdir[PDX(a)];
+    if((*pde & PTE_P) == 0)
+      continue;
+    pgtab = (pte_t*)P2V(PTE_ADDR(*pde));
+    if(pgtab[PTX(a)] & PTE_P)
+      count++;
+  }
+  return count;
+}
+
+int
 sys_sbrk(void)
 {
   int addr;
