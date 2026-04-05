@@ -21,6 +21,7 @@ int chdir(const char*);
 int dup(int);
 int getpid(void);
 int getmemsize(void);
+int getpages(void);
 int getvpages(void);
 int getptentries(void);
 char* sbrk(int);

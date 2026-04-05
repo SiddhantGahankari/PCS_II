@@ -91,6 +91,7 @@ extern int sys_fork(void);
 extern int sys_fstat(void);
 extern int sys_getpid(void);
 extern int sys_getmemsize(void);
+extern int sys_getpages(void);
 extern int sys_getvpages(void);
 extern int sys_getptentries(void);
 extern int sys_kill(void);
@@ -120,6 +121,7 @@ static int (*syscalls[])(void) = {
 [SYS_dup]     sys_dup,
 [SYS_getpid]  sys_getpid,
 [SYS_getmemsize] sys_getmemsize,
+[SYS_getpages] sys_getpages,
 [SYS_getvpages]  sys_getvpages,
 [SYS_getptentries] sys_getptentries,
 [SYS_sbrk]    sys_sbrk,

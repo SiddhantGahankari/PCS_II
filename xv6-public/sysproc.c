@@ -49,6 +49,12 @@ sys_getmemsize(void)
 }
 
 int
+sys_getpages(void)
+{
+  return (myproc()->sz + PGSIZE - 1) / PGSIZE;
+}
+
+int
 sys_getvpages(void)
 {
   return (myproc()->sz + PGSIZE - 1) / PGSIZE;

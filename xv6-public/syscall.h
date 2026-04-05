@@ -21,5 +21,6 @@
 #define SYS_mkdir  20
 #define SYS_close  21
 #define SYS_getmemsize 22
-#define SYS_getvpages  23
-#define SYS_getptentries 24
+#define SYS_getpages   23
+#define SYS_getvpages  24
+#define SYS_getptentries 25
