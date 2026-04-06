@@ -24,3 +24,4 @@
 #define SYS_getpages   23
 #define SYS_getvpages  24
 #define SYS_getptentries 25
+#define SYS_shutdown 26
