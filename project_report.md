@@ -14,11 +14,11 @@ This assignment required us to implement three system calls to process memory in
 
 The calls that we implemented are as follows:
 
-- **getmemsize()** : This returns the total size of the virtual address space of the current process (in bytes). As per the project description Part B, this directly returns the `sz` field from the process structure, which tracks the current process memory size.
+- **getmemsize()** : This returns the total size of the virtual address space of the current process (in bytes). This directly returns the `sz` field from the process structure, which tracks the current process memory size.
 
-- **getvpages()** : This returns the number of virtual pages used by the process. The project description mentions that page size in xv6 is defined by the constant `PGSIZE`. This function calculates the total number of virtual pages by dividing the memory size by the page size.
+- **getvpages()** : This returns the number of virtual pages used by the process. Page size in xv6 is defined by the constant `PGSIZE`. This function calculates the total number of virtual pages by dividing the memory size by the page size.
 
-- **getptentries()** : Returns the number of valid entries in the page table. The project description emphasizes studying `vm.c` for virtual memory management and `mmu.h` for page table constants. This function iterates through the page table as described in Part B's hints and counts only the mapped entries.
+- **getptentries()** : Returns the number of valid entries in the page table. This function iterates through the page table and counts only the mapped entries.
 
 ## Implementation Details
 
@@ -83,11 +83,11 @@ The calls that we implemented are as follows:
 
    - Retrieves the current process and its page directory (`pgdir`)
    - Iterates through virtual memory from 0 to process size (`p->sz`) in page-sized increments (as specified by `PGSIZE`)
-   - For each page, uses `PDX()` and `PTX()` macros (defined in `mmu.h` as mentioned in project description) to extract page directory and page table indices
+  - For each page, uses `PDX()` and `PTX()` macros (defined in `mmu.h`) to extract page directory and page table indices
    - Checks the `PTE_P` (Page Table Entry Present) bit to determine if the page is mapped in physical memory
    - Counts only valid, mapped page table entries
    
-   This approach directly addresses the project description's guidance to study `vm.c` and `mmu.h` for understanding page table management and virtual address translation.
+  This approach follows the use of `vm.c` and `mmu.h` for understanding page table management and virtual address translation.
    - sys_getmemsize(): Directly returns myproc()->sz, basically the process memory size, in bytes.
    - sys_getvpages(): Returns virtual pages by calculating `(sz + PGSIZE - 1) / PGSIZE`
    - sys_getptentries(): All the virtual pages are iterated, from 0 to sz, and checks are made to know whether each page table entry is present. Only counts the mapped entries.
