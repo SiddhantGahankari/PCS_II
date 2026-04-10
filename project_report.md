@@ -1,14 +1,10 @@
-# Project Report: Process Memory Information in xv6
+# [Project Report: Process Memory Information in xv6](https://github.com/SiddhantGahankari/PCS_II.git)
+##  Memory In XV6
+The kernel stores the state of each process using the struct proc defined in proc.h. It contains all the information about the process such as total size(uint sz;), the table (which is another struct) along with information like inodes and process details.
 
->#### Submitted by:
->
->Siddarth Modugu (B24CM1057)  
->Siddhant Gahankari (B24CM1058)  
->Snehil Gautam (B24CM1059)  
+vm.c has the functions such as allocuvm(), deallocuvm(), mappages(), walkpgdir() which handle allocation/deallocation, mapping virtual to physical memory and accessing frames respectively.
 
-## Overview
-
-This assignment required us to implement three system calls to process memory information from xv6-public along with a user program to demonstrate them.
+When a process executes operations like sbrk() to dynamically grow its heap memory, xv6 handles the memory allocation using the allocuvm() which increments the process size, allocates physical frames using kalloc(), initializes the frames to zero, and calls mappages() to update the page tables.
 
 ## The required system calls
 
@@ -32,11 +28,13 @@ A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a smal
 |---|---|
 |syscall.h  |Added 3 syscall numbers (22-24)|               
 |syscall.c  |Added extern declarations and mapped syscall array|
-|sysproc.c  |Implemented 3 syscall functions|                
+|sysproc.c  |Implemented 3 syscall functions|
+|vm.c       |allocuvm() and deallocuvm() updated with tracking functionality|
 |user.h     |Added 3 function prototypes|                    
 |usys.S     |Added 3 SYSCALL macros|                         
 |Makefile   |Added _meminfo to UPROGS|   
-|meminfo.c  | NEW FILE - User test program|               
+|testalloc.c| NEW FILE - User test program for part a|             
+|meminfo.c  | NEW FILE - User test program for part b,c|  
 
 
 ### Changes Made
@@ -108,7 +106,16 @@ A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a smal
    
    This approach follows the use of `vm.c` and `mmu.h` for understanding page table management and virtual address translation.
    ---
-4. user.h - Added User-Level Function Prototypes
+4. vm.c - updated allocuvm() and deallocuvm() with tracking functionality
+   ```c
+    cprintf("allocuvm: tracking memory allocation from %d to %d bytes\n", oldsz, newsz);
+
+    cprintf("deallocuvm: tracking memory deallocation from %d to %d bytes\n", oldsz, newsz);
+   ```
+   These prototypes allow user programs to call the new system calls.
+
+   ---
+5. user.h - Added User-Level Function Prototypes
    ```c
     int getmemsize(void);
     int getvpages(void);
@@ -117,7 +124,7 @@ A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a smal
    These prototypes allow user programs to call the new system calls.
 
    ---
-5. usys.S - Added Assembly Stubs
+6. usys.S - Added Assembly Stubs
    ```assembly
     SYSCALL(getmemsize)
     SYSCALL(getvpages)
@@ -128,10 +135,25 @@ A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a smal
    - Triggers interrupt T_SYSCALL  
    - Returns to caller with result in %eax  
     ---
-    
-6. meminfo.c - User Test Program
+7. testalloc.c - User Test Program for part a
+    A user programe that uses sbrk() to allocate memory and deallocate memory.
+   ```c
+    char *mem = sbrk(4096);
+    if(mem == (char*)-1){
+      printf(1, "testalloc: sbrk failed!\n");
+      exit();
+    }
+    printf(1, "testalloc: allocation successful, returned address: 0x%x\n", mem);
+  
+    printf(1, "testalloc: dynamically deallocating 1 page using sbrk...\n");
+    char *demem = sbrk(-4096);
+   ```
+    During exectution we see what allocuvm and deallocuvm does due to tracking code added allowing us to see memory behaviour.
+   ---
 
-    We created a user program that calls the three system calls implemented (`getmemsize`, `getvpages`, `getptentries`) and displays memory information in a user-friendly format to observe process memory statistics. 
+8. meminfo.c - User Test Program for part a and b
+
+    A user program that calls the three system calls implemented (`getmemsize`, `getvpages`, `getptentries`) and displays memory information in a user-friendly format to observe process memory statistics. 
     
     Here is a snippet demonstrating how the program tests memory allocation using `sbrk()`:
     ```c
@@ -148,31 +170,6 @@ A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a smal
     - Calling it from forked child processes to compare parent and child memory information
     
     ---
-
-7. Makefile - Registered User Program
-   ```makefile
-    UPROGS=\
-        _cat\  
-        _echo\  
-        _forktest\  
-        _grep\  
-        _init\  
-        _kill\  
-        _ln\  
-        _ls\  
-        _mkdir\  
-        _meminfo\    <--Added  
-        _rm\  
-        _sh\  
-        _stressfs\  
-        _usertests\  
-        _wc\  
-        _zombie\  
-        _mytest\  
-        _clear\ 
-        _exit\ 
-   ```
-
 ## Key Learning Outcomes
 
 ### Files Studied and Referenced:
@@ -182,6 +179,23 @@ A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a smal
 - **mmu.h** - Used to understand page table macros like `PDX()`, `PTX()`, `PTE_ADDR()`, and the `PTE_P` flag
 - **syscall.c and sysproc.c** - Modified to extend xv6 with new system calls following existing patterns
 
+## Output of testalloc.c
+```output
+$ testalloc
+allocuvm: tracking memory allocation from 16384 to 49152 bytes
+allocuvm: tracking memory allocation from 0 to 3000 bytes
+allocuvm: tracking memory allocation from 4096 to 12288 bytes
+deallocuvm: tracking memory deallocation from -2147483648 to 0 bytes
+testalloc: dynamically allocating 1 page (4096 bytes) using sbrk...
+allocuvm: tracking memory allocation from 12288 to 16384 bytes
+testalloc: allocation successful, returned address: 0x3000
+testalloc: dynamically deallocating 1 page using sbrk...
+deallocuvm: tracking memory deallocation from 16384 to 12288 bytes
+testalloc: deallocation successful
+testalloc: finishing test program.
+deallocuvm: tracking memory deallocation from -2147483648 to 0 bytes
+$ 
+```
 
 ## Output of meminfo.c 
 

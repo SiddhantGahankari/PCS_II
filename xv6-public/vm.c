@@ -229,6 +229,8 @@ allocuvm(pde_t *pgdir, uint oldsz, uint newsz)
   if(newsz < oldsz)
     return oldsz;
 
+  cprintf("allocuvm: tracking memory allocation from %d to %d bytes\n", oldsz, newsz);
+
   a = PGROUNDUP(oldsz);
   for(; a < newsz; a += PGSIZE){
     mem = kalloc();
@@ -260,6 +262,8 @@ deallocuvm(pde_t *pgdir, uint oldsz, uint newsz)
 
   if(newsz >= oldsz)
     return oldsz;
+
+  cprintf("deallocuvm: tracking memory deallocation from %d to %d bytes\n", oldsz, newsz);
 
   a = PGROUNDUP(newsz);
   for(; a  < oldsz; a += PGSIZE){

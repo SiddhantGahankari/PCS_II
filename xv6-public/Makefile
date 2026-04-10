@@ -176,6 +176,7 @@ UPROGS=\
 	_ls\
 	_mkdir\
 	_meminfo\
+	_testalloc\
 	_rm\
 	_sh\
 	_stressfs\
