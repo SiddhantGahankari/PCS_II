@@ -3,7 +3,7 @@
 
 void printinfo(void) {
   printf(1, "  Process Memory Size : %d bytes\n", getmemsize());
-  printf(1, "  Virtual Pages Used  : %d pages\n", getpages());
+  printf(1, "  Virtual Pages Used  : %d pages\n", getvpages());
   printf(1, "  VPages (ceil)       : %d pages\n", getvpages());
   printf(1, "  Page Table Entries  : %d entries\n", getptentries());
 }
@@ -28,7 +28,7 @@ int main(void) {
   // TEST 3: Consistency check
   printf(1, "\n[TEST 3] Consistency check:\n");
   int sz    = getmemsize();
-  int pages = getpages();
+  int pages = getvpages();
   int pte   = getptentries();
   int expected_pages = (sz + 4096 - 1) / 4096;
 
@@ -47,13 +47,13 @@ int main(void) {
   int pid = fork();
   if(pid == 0) {
     printf(1, "  [CHILD]  Memory Size : %d\n", getmemsize());
-    printf(1, "  [CHILD]  Pages       : %d\n", getpages());
+    printf(1, "  [CHILD]  Pages       : %d\n", getvpages());
     printf(1, "  [CHILD]  PTE         : %d\n", getptentries());
     exit();
   } else {
     wait();
     printf(1, "  [PARENT] Memory Size : %d\n", getmemsize());
-    printf(1, "  [PARENT] Pages       : %d\n", getpages());
+    printf(1, "  [PARENT] Pages       : %d\n", getvpages());
     printf(1, "  [PARENT] PTE         : %d\n", getptentries());
     printf(1, "  [CHECK]  Parent and child should match above\n");
   }

@@ -67,11 +67,6 @@ myproc(void) {
 
 //PAGEBREAK: 32
 // Look in the process table for an UNUSED proc.
-// Return the number of pages used by the current process
-int getpages(void) {
-  struct proc *curproc = myproc();
-  return (curproc->sz + PGSIZE - 1) / PGSIZE;
-}
 // If found, change state to EMBRYO and initialize
 // state required to run in the kernel.
 // Otherwise return 0.

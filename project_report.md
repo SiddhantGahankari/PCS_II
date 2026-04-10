@@ -22,15 +22,20 @@ The calls that we implemented are as follows:
 
 ## Implementation Details
 
+### System Call Workflow
+
+A user program (`meminfo.c`) calls `getmemsize()`. This call goes through a small assembly stub (`usys.S`), which places the system call number in a register and triggers a software interrupt. The OS catches this interrupt in `trap.c`, then `syscall.c` uses the number to find the correct kernel function. That function (like `sys_getmemsize()` in `sysproc.c`) runs in kernel mode, gets the memory info, and returns it back to the user program.
+
 ### Files Modified
 
 |File       | Changes |
 |---|---|
 |syscall.h  |Added 3 syscall numbers (22-24)|               
+|syscall.c  |Added extern declarations and mapped syscall array|
 |sysproc.c  |Implemented 3 syscall functions|                
 |user.h     |Added 3 function prototypes|                    
 |usys.S     |Added 3 SYSCALL macros|                         
-|Makefile   |Added _meminfo to UPROGS and rmeoved _Werror|   
+|Makefile   |Added _meminfo to UPROGS|   
 |meminfo.c  | NEW FILE - User test program|               
 
 
@@ -38,15 +43,28 @@ The calls that we implemented are as follows:
 
 1. syscall.h - Added System Call Numbers
    
-    ```
+    ```c
     #define SYS_getmemsize 22
     #define SYS_getvpages  23
     #define SYS_getptentries 24
     ```
     ---
+    
+2. syscall.c - Registered System Calls
+    Added the `extern` definitions for our functions and mapped them in the system call array so the kernel can route the traps correctly:
+    ```c
+    extern int sys_getmemsize(void);
+    extern int sys_getvpages(void);
+    extern int sys_getptentries(void);
+    // Inside the syscalls array:
+    [SYS_getmemsize]   sys_getmemsize,
+    [SYS_getvpages]    sys_getvpages,
+    [SYS_getptentries] sys_getptentries,
+    ```
+    ---
 
-2. sysproc.c - Implemented System Call Functions
-   ```
+3. sysproc.c - Implemented System Call Functions
+   ```c
    int sys_getmemsize(void)
    {
      return myproc()->sz;
@@ -78,57 +96,61 @@ The calls that we implemented are as follows:
    }
    ```
    
-   **Explanation of sys_getptentries():**
-   This function implements the page table entry counting mechanism.The function:
-
-   - Retrieves the current process and its page directory (`pgdir`)
-   - Iterates through virtual memory from 0 to process size (`p->sz`) in page-sized increments (as specified by `PGSIZE`)
-  - For each page, uses `PDX()` and `PTX()` macros (defined in `mmu.h`) to extract page directory and page table indices
-   - Checks the `PTE_P` (Page Table Entry Present) bit to determine if the page is mapped in physical memory
-   - Counts only valid, mapped page table entries
+   **Explanation of Functions:**
+   - **sys_getmemsize():** Directly returns myproc()->sz, basically the process memory size, in bytes.
+   - **sys_getvpages():** Returns virtual pages by calculating `(sz + PGSIZE - 1) / PGSIZE`
+   - **sys_getptentries():** This function implements the page table entry counting mechanism. The function:
+     - Retrieves the current process and its page directory (`pgdir`)
+     - Iterates through virtual memory from 0 to process size (`p->sz`) in page-sized increments (as specified by `PGSIZE`)
+     - For each page, uses `PDX()` and `PTX()` macros (defined in `mmu.h`) to extract page directory and page table indices
+     - Checks the `PTE_P` (Page Table Entry Present) bit to determine if the page is mapped in physical memory
+     - Counts only valid, mapped page table entries (All the virtual pages are iterated, from 0 to sz, and checks are made to know whether each page table entry is present).
    
-  This approach follows the use of `vm.c` and `mmu.h` for understanding page table management and virtual address translation.
-   - sys_getmemsize(): Directly returns myproc()->sz, basically the process memory size, in bytes.
-   - sys_getvpages(): Returns virtual pages by calculating `(sz + PGSIZE - 1) / PGSIZE`
-   - sys_getptentries(): All the virtual pages are iterated, from 0 to sz, and checks are made to know whether each page table entry is present. Only counts the mapped entries.
+   This approach follows the use of `vm.c` and `mmu.h` for understanding page table management and virtual address translation.
    ---
-3. user.h - Added User-Level Function Prototypes
-   ```
+4. user.h - Added User-Level Function Prototypes
+   ```c
     int getmemsize(void);
     int getvpages(void);
     int getptentries(void);
    ```
-   ---
    These prototypes allow user programs to call the new system calls.
 
    ---
-4. usys.S - Added Assembly Stubs
-   ```
+5. usys.S - Added Assembly Stubs
+   ```assembly
     SYSCALL(getmemsize)
     SYSCALL(getvpages)
     SYSCALL(getptentries)
    ```
-   ---
    These macros expand to assembly code that:
-
    - Loads the system call number into %eax  
    - Triggers interrupt T_SYSCALL  
    - Returns to caller with result in %eax  
     ---
     
-    **What the user program does actually:**
-    This user program:
-    - Calls the three system calls implemented (getmemsize, getvpages, getptentries)
-    - Displays memory information in a user-friendly format
-    - Demonstrates the use of the system calls to observe process memory statistics
-    - Can be compiled into xv6 by adding it to the Makefile, allowing it to run inside the emulator
+6. meminfo.c - User Test Program
+
+    We created a user program that calls the three system calls implemented (`getmemsize`, `getvpages`, `getptentries`) and displays memory information in a user-friendly format to observe process memory statistics. 
     
-    This program can be used to conduct the testing scenarios , such as:
+    Here is a snippet demonstrating how the program tests memory allocation using `sbrk()`:
+    ```c
+    // TEST 2: After sbrk allocations
+    printf(1, "\n[TEST 2] After allocating 3 extra pages (sbrk x3):\n");
+    sbrk(4096);
+    sbrk(4096);
+    sbrk(4096);
+    printinfo();
+    ```
+    This program conducts testing scenarios, such as:
     - Running it immediately after system startup to observe base memory usage
     - Modifying it to allocate additional memory to observe how values change
     - Calling it from forked child processes to compare parent and child memory information
-6. Makefile - Registered User Program
-   ```
+    
+    ---
+
+7. Makefile - Registered User Program
+   ```makefile
     UPROGS=\
         _cat\  
         _echo\  
@@ -150,8 +172,6 @@ The calls that we implemented are as follows:
         _clear\ 
         _exit\ 
    ```
-
-Additionally, the system calls were registered in `syscall.c` by adding them to the syscall table.
 
 ## Key Learning Outcomes
 
