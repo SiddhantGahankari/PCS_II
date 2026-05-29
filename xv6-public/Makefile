@@ -186,6 +186,10 @@ UPROGS=\
 	_mytest\
 	_clear\
   _exit\
+	_schedtest\
+	_prioritytest\
+	_fs_demo\
+	_fsinfo_test\
 
 fs.img: mkfs README $(UPROGS)
 	./mkfs fs.img README $(UPROGS)

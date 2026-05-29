@@ -1,5 +1,5 @@
 # [Project Report: Process Memory Information in xv6](https://github.com/SiddhantGahankari/PCS_II.git)
-##  Memory In XV6
+##  Memory In XV6 (Part - A)
 The kernel stores the state of each process using the struct proc defined in proc.h. It contains all the information about the process such as total size(uint sz;), the table (which is another struct) along with information like inodes and process details.
 
 vm.c has the functions such as allocuvm(), deallocuvm(), mappages(), walkpgdir() which handle allocation/deallocation, mapping virtual to physical memory and accessing frames respectively.

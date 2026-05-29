@@ -442,3 +442,13 @@ sys_pipe(void)
   fd[1] = fd1;
   return 0;
 }
+
+int
+sys_getfsinfo(void)
+{
+  struct fsinfo *fsi;
+  if (argptr(0, (void*)&fsi, sizeof(*fsi)) < 0)
+    return -1;
+  get_fs_stats(ROOTDEV, fsi);
+  return 0;
+}

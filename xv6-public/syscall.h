@@ -23,4 +23,6 @@
 #define SYS_getmemsize 22
 #define SYS_getvpages  23
 #define SYS_getptentries 24
+#define SYS_setpriority 25
+#define SYS_getfsinfo 27
 #define SYS_shutdown 26

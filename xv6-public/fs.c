@@ -668,3 +668,40 @@ nameiparent(char *path, char *name)
 {
   return namex(path, 1, name);
 }
+
+void
+get_fs_stats(int dev, struct fsinfo *fsi)
+{
+  int i, b, bi, m;
+  struct buf *bp;
+  struct dinode *dip;
+
+  fsi->num_files = 0;
+  fsi->num_dirs = 0;
+  fsi->allocated_inodes = 0;
+  fsi->free_disk_blocks = 0;
+
+  for(i = 1; i < sb.ninodes; i++) {
+    bp = bread(dev, IBLOCK(i, sb));
+    dip = (struct dinode*)bp->data + i%IPB;
+    if(dip->type != 0) {
+      fsi->allocated_inodes++;
+      if(dip->type == T_FILE)
+        fsi->num_files++;
+      else if(dip->type == T_DIR)
+        fsi->num_dirs++;
+    }
+    brelse(bp);
+  }
+
+  for(b = 0; b < sb.size; b += BPB) {
+    bp = bread(dev, BBLOCK(b, sb));
+    for(bi = 0; bi < BPB && b + bi < sb.size; bi++) {
+      m = 1 << (bi % 8);
+      if((bp->data[bi/8] & m) == 0) {
+        fsi->free_disk_blocks++;
+      }
+    }
+    brelse(bp);
+  }
+}

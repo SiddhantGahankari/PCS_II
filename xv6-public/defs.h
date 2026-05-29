@@ -9,6 +9,7 @@ struct spinlock;
 struct sleeplock;
 struct stat;
 struct superblock;
+struct fsinfo;
 
 // bio.c
 void            binit(void);
@@ -46,6 +47,7 @@ void            iput(struct inode*);
 void            iunlock(struct inode*);
 void            iunlockput(struct inode*);
 void            iupdate(struct inode*);
+void            get_fs_stats(int, struct fsinfo*);
 int             namecmp(const char*, const char*);
 struct inode*   namei(char*);
 struct inode*   nameiparent(char*, char*);
@@ -106,6 +108,7 @@ int             pipewrite(struct pipe*, char*, int);
 int             cpuid(void);
 void            exit(void);
 int             fork(void);
+int             setpriority(int, int);
 int             growproc(int);
 int             kill(int);
 struct cpu*     mycpu(void);

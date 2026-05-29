@@ -94,6 +94,8 @@ extern int sys_getpid(void);
 extern int sys_getmemsize(void);
 extern int sys_getvpages(void);
 extern int sys_getptentries(void);
+extern int sys_setpriority(void);
+extern int sys_getfsinfo(void);
 extern int sys_kill(void);
 extern int sys_link(void);
 extern int sys_mkdir(void);
@@ -123,6 +125,8 @@ static int (*syscalls[])(void) = {
 [SYS_getmemsize] sys_getmemsize,
 [SYS_getvpages]  sys_getvpages,
 [SYS_getptentries] sys_getptentries,
+[SYS_setpriority] sys_setpriority,
+[SYS_getfsinfo] sys_getfsinfo,
 [SYS_sbrk]    sys_sbrk,
 [SYS_sleep]   sys_sleep,
 [SYS_uptime]  sys_uptime,
